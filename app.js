@@ -13,7 +13,12 @@ const bodyParser = require('body-parser');
 const dbConfig = require('./config/dbConfig');
 const mongoose = require('mongoose');
 
-mongoose.connect(dbConfig.getDBUri(), {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(dbConfig.getDBUri(),
+     {
+         useNewUrlParser: true, 
+         useUnifiedTopology: true,
+         useCreateIndex: true,
+    })
 .then(conn=>{
     console.log(`Mongo Database Connected`);
 })

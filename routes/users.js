@@ -9,7 +9,7 @@ const User = require('../models/userModel');
 
 
 //login page
-router.get('/login', (req, res)=>{
+router.get('/login', (req, res, next)=>{
     res.render('login',{'page': "Login Page"});
 });
 
@@ -43,15 +43,9 @@ router.post('/register', (req, res)=>{
         });
     }else{
          //check that the provided email isn't already in the system
-        User.findOne({email:email})
+        User.findOne({email})
         .then(user=>{
-            errors.push({msg: `The Email is Associated with another Account.`});
-        })
-        .catch(err=>{
-            console.log(`There's An ERROR: ${err}`);
-        });
-        //store the user in the database
-        if(errors.length){
+            errors.push({msg: `The Email "${user.email}" is Associated with another Account.`});
             res.render('register', {
                 errors:errors,
                 data:{
@@ -59,30 +53,41 @@ router.post('/register', (req, res)=>{
                     email
                 }
             });
-        }
-         bcrypt.genSalt(10)
-         .then(salt=>{
-            return bcrypt.hash(password, salt);
-         })
-         .then(hash=>{
-            //save the hash to database
-            let newUser = User({
-                name:name,
-                email:email,
-                password :hash
+        })
+        .catch(err=>{
+            console.log(`There's An ERROR: ${err}`);
+        });
+        //store the user in the database
+       
+            bcrypt.genSalt(10)
+            .then(salt=>{
+               return bcrypt.hash(password, salt);
+            })
+            .then(hash=>{
+               //save the hash to database
+               let newUser = User({
+                   name:name,
+                   email:email,
+                   password :hash
+               });
+               return newUser.save();
+            })
+            .then(user=>{
+                console.log(`User saved to Database Successfully!!!`);
+                return next({email:user.email, _id: user._id});
+            })
+            .catch(err=>{
+               console.log(`Error Creating new User: ${err}`);
             });
-            return newUser.save();
-         })
-         .then(user=>{
-             console.log(`User saved to Database Successfully!!!`);
-             res.status(200).send(user);
-         })
-         .catch(err=>{
-            console.log(`We have an Error: ${err}`);
-         })
-        
+      
     }
    
+});
+
+router.get('/dashboard',(req, res)=>{
+    console.log(req.params);
+    console.log(req.body);
+    res.render('dashboard', {req,body});
 });
 
 module.exports = router;
